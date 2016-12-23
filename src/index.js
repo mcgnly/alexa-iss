@@ -14,7 +14,10 @@ var languageStrings = {
         }
 }};
 
+var globalContext;
+
 exports.handler = function(event, context, callback) {
+    globalContext = context;
     var alexa = Alexa.handler(event, context);//Alexa comes from the sdk
     alexa.APP_ID = APP_ID;
     // To enable string internationalization (i18n) features, set a resources object.
@@ -50,7 +53,6 @@ var handlers = {
                 res.on('end', function(){
                     var result = JSON.parse(body);
                     let latLong = result.latitude.toString() + ',' + result.longitude.toString();
-                    // console.log("data has ended, so result is: ", latLong);
                     callback(latLong);
                 });
 
@@ -60,9 +62,7 @@ var handlers = {
         };
 
         function getLocation(latLong, cb){
-        //     var url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng=' + latLong;
             var url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng=' + latLong + '&key=AIzaSyBHijbVuHaoz5QMqWtw5JS_iIzHOamNyeg';
-        //     console.log('url is ', url);
             https.get(url, function(res){
                 var body = '';
                 res.on('data', function(data){
@@ -72,58 +72,29 @@ var handlers = {
                 res.on('end', function(){
                     var result = JSON.parse(body);
                     if (result.results.length === 0 ) {
-                        var location = 'somewhere over the ocean';
+                        var location = 'a spot in the ocean without an address';
                     } else { 
                         var location = result.results[0].formatted_address;
                     }
                     
-                    console.log("data has ended, so result is: ", location);
                     cb(location);
+                    globalContext.succeed();
                 });
 
             }).on('error', function(e){
                 console.log('Error: ' + e);
+                globalContext.done(null, 'FAILURE');
             });
         }
 
-
-
-
+        var self = this;
         
-
-    // 'LocateISS': function () {
-    //     var getUrl= function(){
-    //         return "http://api.wheretheiss.at/v1/satellites/25544";
-    //     };
-    //     var getLocation = function(){
-    //       http.get(getUrl(), function(res){
-    //         var body = '';
-
-    //         res.on('data', function(data){
-    //           body += data;
-    //         });
-
-    //         res.on('end', function(){
-    //           var result = JSON.parse(body);
-    //           var text = result.facts[0];
-    //           console.log('the space station is at: ', text);
-    //           return text;
-    //         });
-
-    //       }).on('error', function(e){
-    //       });
-    //     };
-
-
-
-        this.emit(':tell', 
-            getCatFacts(function(data){
-                getLocation(data, function(res){
-                    console.log("inside the second fn call. Location is: ", res);
-                    return res;
-                });
-            })
-        );
+        getCatFacts(function(data){
+            getLocation(data, function(res){
+                self.emit(':tell', 'the international space station is currently over ' + res);
+            });
+        })
+        
 
 
     },
