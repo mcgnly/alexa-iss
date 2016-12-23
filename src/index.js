@@ -1,14 +1,14 @@
 'use strict';
 var Alexa = require('alexa-sdk'),
-    http = require('http');
-var APP_ID = "amzn1.ask.skill.086604cd-91e7-4f88-8cfd-2ac4bb243719";  // TODO replace with your app ID (OPTIONAL).
+    https = require('https');
+var APP_ID = "";  // TODO replace with your app ID (OPTIONAL).
 
 var languageStrings = {
     "en-US": {
         "translation": {
-            "SKILL_NAME" : "Cat Facts",
-            "GET_FACT_MESSAGE" : "Here's your fact: ",
-            "HELP_MESSAGE" : "You can say tell me a cat fact, or, you can say exit... What can I help you with?",
+            "SKILL_NAME" : "Space Station Finder",
+            "GET_FACT_MESSAGE" : "The international Space station is currently over: ",
+            "HELP_MESSAGE" : "You can say where is the space station, or, you can say exit... What can I help you with?",
             "HELP_REPROMPT" : "What can I help you with?",
             "STOP_MESSAGE" : "Goodbye!"
         }
@@ -25,51 +25,105 @@ exports.handler = function(event, context, callback) {
 
 var handlers = {
     'LaunchRequest': function () {
-        this.emit('GetFact');
+        this.emit('locateIss');
     },
-    'GetNewFactIntent': function () {
-        this.emit('GetFact');
+    'GetLocationIntent': function () {
+        this.emit('locateIss');
     },
-    'GetFact': function () {
-        // Get a random space fact from the space facts list
-        // Use this.t() to get corresponding language data
-        // var factArr = this.t('FACTS');
-        // var factIndex = Math.floor(Math.random() * factArr.length);
-        // var randomFact = factArr[factIndex];
+    'locateIss': function() {
 
-        // Create speech output
-        // var speechOutput = this.t("GET_FACT_MESSAGE") + randomFact;
+
         var getUrl= function(){
-            return "http://catfacts-api.appspot.com/api/facts";
+            return "https://api.wheretheiss.at/v1/satellites/25544";
+            // 40.714224,-73.961452&key=
+            // 16.806297,149.477956
+            // return 'https://maps.googleapis.com/maps/api/geocode/json?latlng=40.714224,-73.961452&key=AIzaSyBHijbVuHaoz5QMqWtw5JS_iIzHOamNyeg';
         };
-        var getCatFacts = function(){
-            console.log("inside GetCatFact");
-          http.get(getUrl(), function(res){
-              console.log("1");
-            var body = '';
+        var getCatFacts = function(callback){
+            console.log("-----------------");
+            https.get(getUrl(), function(res){
+                var body = '';
+                res.on('data', function(data){
+                    body += data;
+                });
 
-            res.on('data', function(data){
-                console.log("2");
-              body += data;
+                res.on('end', function(){
+                    var result = JSON.parse(body);
+                    let latLong = result.latitude.toString() + ',' + result.longitude.toString();
+                    // console.log("data has ended, so result is: ", latLong);
+                    callback(latLong);
+                });
+
+            }).on('error', function(e){
+                console.log('Error: ' + e);
             });
-
-            res.on('end', function(){
-                console.log("3");
-              var result = JSON.parse(body);
-              var text = result.facts[0];
-              console.log("the spoken text should be: ", text);
-              return text;
-            });
-
-          }).on('error', function(e){
-            console.log('Error: ' + e);
-          });
         };
 
+        function getLocation(latLong, cb){
+        //     var url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng=' + latLong;
+            var url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng=' + latLong + '&key=AIzaSyBHijbVuHaoz5QMqWtw5JS_iIzHOamNyeg';
+        //     console.log('url is ', url);
+            https.get(url, function(res){
+                var body = '';
+                res.on('data', function(data){
+                    body += data;
+                });
 
-        console.log("inside GetFact itself");
+                res.on('end', function(){
+                    var result = JSON.parse(body);
+                    if (result.results.length === 0 ) {
+                        var location = 'somewhere over the ocean';
+                    } else { 
+                        var location = result.results[0].formatted_address;
+                    }
+                    
+                    console.log("data has ended, so result is: ", location);
+                    cb(location);
+                });
 
-        this.emit(':tell', getCatFacts());
+            }).on('error', function(e){
+                console.log('Error: ' + e);
+            });
+        }
+
+
+
+
+        
+
+    // 'LocateISS': function () {
+    //     var getUrl= function(){
+    //         return "http://api.wheretheiss.at/v1/satellites/25544";
+    //     };
+    //     var getLocation = function(){
+    //       http.get(getUrl(), function(res){
+    //         var body = '';
+
+    //         res.on('data', function(data){
+    //           body += data;
+    //         });
+
+    //         res.on('end', function(){
+    //           var result = JSON.parse(body);
+    //           var text = result.facts[0];
+    //           console.log('the space station is at: ', text);
+    //           return text;
+    //         });
+
+    //       }).on('error', function(e){
+    //       });
+    //     };
+
+
+
+        this.emit(':tell', 
+            getCatFacts(function(data){
+                getLocation(data, function(res){
+                    console.log("inside the second fn call. Location is: ", res);
+                    return res;
+                });
+            })
+        );
 
 
     },

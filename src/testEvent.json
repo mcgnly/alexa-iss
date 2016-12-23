@@ -1,0 +1,24 @@
+{
+  "session": {
+    "sessionId": "SessionId.6f128b66-1a55-4947-b69a-7199270f86cc",
+    "application": {
+      "applicationId": "amzn1.ask.skill.709cfdb3-709f-453c-bfbe-96d37234ad2a"
+    },
+    "attributes": {},
+    "user": {
+      "userId": "amzn1.ask.account.AGBMHX7PMVVCGVS5ERDNGUXUA5XIGNKSUF5GL3YXUPJA365VKKHIFDFOLPZRMLOE3D2F4PG6TI5SMTGOFNOF5Q7XEYV3J4P35CQD3DABWYI3YWIUYIFQUSO6Q7ROGTBTJTZVLIJGX43XUA7BGDZJGRWDNSY2GWRVQ5BOPBPKFSOV6YY2COFWFJXBV7RGQ65IXUOVMJXBYUVIBNA"
+    },
+    "new": true
+  },
+  "request": {
+    "type": "LaunchRequest",
+    "requestId": "EdwRequestId.aeba4798-288b-4f70-a2e7-71564049489f",
+    "locale": "en-US",
+    "timestamp": "2016-12-15T19:52:47Z",
+    "intent": {
+      "name": "PlayAudio",
+      "slots": {}
+    }
+  },
+  "version": "1.0"
+}
