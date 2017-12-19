@@ -10,7 +10,17 @@ var languageStrings = {
             "GET_FACT_MESSAGE" : "The international Space station is currently over: ",
             "HELP_MESSAGE" : "You can say where is the space station, or, you can say exit... What can I help you with?",
             "HELP_REPROMPT" : "What can I help you with?",
-            "STOP_MESSAGE" : "Goodbye!"
+            "STOP_MESSAGE" : "Goodbye!",
+            "NO_LOCATION" : "a spot in the ocean without an address"
+        },
+    "de-DE": {
+        "translation": {
+            "SKILL_NAME" : "Space Station Finder",
+            "GET_FACT_MESSAGE" : "Die internationale Weltraumstation ist gerade über: ",
+            "HELP_MESSAGE" : "Du kannst fragen wo ist die Weltraumstation, oder, du kannst sagen Exit... was kann ich für dich tun?",
+            "HELP_REPROMPT" : "was kann ich für dich tun?",
+            "STOP_MESSAGE" : "Tschuss!",
+            "NO_LOCATION" : "über der Ozean, ohne Addresse"
         }
 }};
 
@@ -72,7 +82,7 @@ var handlers = {
                 res.on('end', function(){
                     var result = JSON.parse(body);
                     if (result.results.length === 0 ) {
-                        var location = 'a spot in the ocean without an address';
+                        var location = this.t("NO_LOCATION");
                     } else { 
                         var location = result.results[0].formatted_address;
                     }
@@ -91,7 +101,7 @@ var handlers = {
         
         getCatFacts(function(data){
             getLocation(data, function(res){
-                self.emit(':tell', 'the international space station is currently over ' + res);
+                self.emit(':tell', this.t("GET_FACT_MESSAGE") + res);
             });
         })
         
@@ -104,14 +114,14 @@ var handlers = {
         this.emit(':ask', speechOutput, reprompt);
     },
     'AMAZON.CancelIntent': function () {
-        // this.emit(':tell', this.t("STOP_MESSAGE"));
-        this.emit(':tell', "Goodbye.");
+        this.emit(':tell', this.t("STOP_MESSAGE"));
+        // this.emit(':tell', "Goodbye.");
     },
     'AMAZON.StopIntent': function () {
-        this.emit(':tell', "Goodbye.");
+        this.emit(':tell', this.t("STOP_MESSAGE"));
     },
     'Unhandled': function() {
-        this.emit(':ask', 'Sorry, I didn\'t get that.', 'Try asking for a fact.');
+        this.emit(':ask', this.t("HELP_REPROMPT"), this.t("HELP_MESSAGE"));
     }
 
 };
